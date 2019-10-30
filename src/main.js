@@ -5,13 +5,15 @@ import VueTextareaAutosize from "vue-textarea-autosize";
 import firebase from "firebase/app";
 import "firebase/firestore";
 
-import firebaseConfig from "./utils";
+import { firebaseConfig } from "./utils";
 
 Vue.use(VueTextareaAutosize);
 
 Vue.config.productionTip = false;
 
 firebase.initializeApp(firebaseConfig);
+
+export const db = firebase.firestore();
 
 new Vue({
   vuetify,
