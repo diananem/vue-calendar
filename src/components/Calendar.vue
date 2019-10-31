@@ -59,23 +59,42 @@
         >
           <v-card color="grey lighten-4" min-width="350px" flat>
             <v-toolbar :color="selectedEvent.color" dark>
-              <v-btn icon>
-                <v-icon>mdi-pencil</v-icon>
+              <v-btn icon @click="deleteEvent(selectedEvent.id)">
+                <v-icon>mdi-delete</v-icon>
               </v-btn>
               <v-toolbar-title v-html="selectedEvent.name"></v-toolbar-title>
               <v-spacer></v-spacer>
-              <v-btn icon>
-                <v-icon>mdi-heart</v-icon>
-              </v-btn>
-              <v-btn icon>
-                <v-icon>mdi-dots-vertical</v-icon>
+              <v-btn
+                icon
+                v-if="currentlyEditing !== selectedEvent.id"
+                @click="currentlyEditing = selectedEvent.id"
+              >
+                <v-icon>mdi-pencil</v-icon>
               </v-btn>
             </v-toolbar>
             <v-card-text>
-              <span v-html="selectedEvent.details"></span>
+              <form v-if="currentlyEditing !== selectedEvent.id">{{selectedEvent.details}}</form>
+              <form v-else>
+                <textarea-autosize
+                  v-model="selectedEvent.details"
+                  style="width: 100%"
+                  :min-height="30"
+                  placeholder="Add a note"
+                ></textarea-autosize>
+              </form>
             </v-card-text>
             <v-card-actions>
-              <v-btn text color="secondary" @click="selectedOpen = false">Cancel</v-btn>
+              <v-btn
+                text
+                color="secondary"
+                @click="selectedOpen = false, currentlyEditing = null"
+              >Cancel</v-btn>
+              <v-btn
+                text
+                color="secondary"
+                v-if="currentlyEditing === selectedEvent.id"
+                @click.prevent="updateEvent(selectedEvent)"
+              >Save</v-btn>
             </v-card-actions>
           </v-card>
         </v-menu>
@@ -198,6 +217,24 @@ export default {
       return d > 3 && d < 21
         ? "th"
         : ["th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th"][d % 10];
+    },
+    async updateEvent(event) {
+      await db
+        .collection("events")
+        .doc(this.currentlyEditing)
+        .update({
+          details: event.details
+        });
+      this.selectedOpen = false;
+      this.currentlyEditing = null;
+    },
+    async deleteEvent(event) {
+      await db
+        .collection("events")
+        .doc(event)
+        .delete();
+      this.selectedOpen = false;
+      this.getEvents();
     }
   }
 };
