@@ -3,6 +3,7 @@
     <v-col>
       <v-sheet height="64">
         <v-toolbar flat color="white">
+          <v-btn color="primary" class="mr-4" @click="dialog = true" dark>New Event</v-btn>
           <v-btn outlined class="mr-4" @click="setToday">Today</v-btn>
           <v-btn fab text small @click="prev">
             <v-icon small>mdi-chevron-left</v-icon>
@@ -36,6 +37,62 @@
           </v-menu>
         </v-toolbar>
       </v-sheet>
+
+      <!-- Add event dialog -->
+
+      <v-dialog v-model="dialog" persistent max-width="500">
+        <v-card>
+          <v-card-title>
+            <span class="headline">New Event</span>
+          </v-card-title>
+          <v-card-text>
+            <v-container>
+              <v-row>
+                <v-col cols="12">
+                  <v-text-field
+                    label="Event Name"
+                    v-model="name"
+                    type="text"
+                    hint="This field is required"
+                    required
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12">
+                  <v-text-field label="Event Details" type="text" v-model="details" required></v-text-field>
+                </v-col>
+                <v-col cols="12">
+                  <v-text-field
+                    label="Start Date"
+                    v-model="start"
+                    type="date"
+                    hint="This field is required"
+                    required
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12">
+                  <v-text-field
+                    label="End Date"
+                    v-model="end"
+                    type="date"
+                    hint="This field is required"
+                    required
+                  ></v-text-field>
+                </v-col>
+
+                <v-col cols="12">
+                  <v-text-field label="Pick Event Color" v-model="color" type="color" required></v-text-field>
+                </v-col>
+              </v-row>
+            </v-container>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn color="blue darken-1" text @click="dialog = false">Close</v-btn>
+            <v-btn color="blue darken-1" text @click="addEvent">Create Event</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+
       <v-sheet height="600">
         <v-calendar
           ref="calendar"
@@ -217,6 +274,26 @@ export default {
       return d > 3 && d < 21
         ? "th"
         : ["th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th"][d % 10];
+    },
+    async addEvent() {
+      if (this.name && this.start && this.end) {
+        await db.collection("events").add({
+          name: this.name,
+          details: this.details,
+          start: this.start,
+          end: this.end,
+          color: this.color
+        });
+        this.getEvents();
+        this.name = null;
+        this.details = null;
+        this.start = null;
+        this.end = null;
+        this.color = null;
+        this.dialog = false;
+      } else {
+        alert("Event name, start and end date are required");
+      }
     },
     async updateEvent(event) {
       await db
